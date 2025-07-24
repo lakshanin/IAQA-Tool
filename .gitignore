@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+env/
+.env
+venv/
+
+# Sensor data
+sensor-data/
+*.ndjson
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

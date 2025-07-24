@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAQ Analysis Tool</title>
+    
+    <!-- React and React DOM from CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7f9;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+        
+        .query-form {
+            margin-bottom: 30px;
+        }
+        
+        .query-input {
+            width: 95%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        .query-input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .submit-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .submit-button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .summary {
+            font-size: 18px;
+            margin-bottom: 20px;
+            white-space: pre-line;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table-container th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .table-container td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .table-container tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .table-container tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .error {
+            color: #e74c3c;
+            padding: 15px;
+            background-color: #fadbd8;
+            border-left: 5px solid #e74c3c;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .sample-queries {
+            margin-top: 30px;
+        }
+        
+        .sample-queries h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .sample-query {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            padding: 8px 15px;
+            background-color: #edf2f7;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .sample-query:hover {
+            background-color: #e2e8f0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    
+    <script type="text/babel">
+        const App = () => {
+            const [query, setQuery] = React.useState('');
+            const [loading, setLoading] = React.useState(false);
+            const [result, setResult] = React.useState(null);
+            const [error, setError] = React.useState(null);
+            
+            const sampleQueries = [
+                "How does CO2 vary by day of week?",
+                "Which room had highest temperature last week?",
+                "List rooms by average humidity",
+                "Show temperature changes hourly in Room 1"
+            ];
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                
+                if (!query.trim()) {
+                    setError("Please enter a query");
+                    return;
+                }
+                
+                setLoading(true);
+                setError(null);
+                setResult(null);
+                
+                try {
+                    const response = await fetch('/query', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        setError(data.summary || "An error occurred while processing your query");
+                    } else {
+                        setResult(data);
+                    }
+                } catch (err) {
+                    setError("Failed to connect to the server. Please try again later.");
+                    console.error("API Error:", err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const handleSampleQuery = (sampleQuery) => {
+                setQuery(sampleQuery);
+            };
+            
+            // Function to create HTML markup safely
+            const createMarkup = (html) => {
+                return {__html: html};
+            };
+            
+            return (
+                <div className="container">
+                    <h1>IAQ Analysis Tool</h1>
+                    <form className="query-form" onSubmit={handleSubmit}>
+                        <input
+                            type="text"
+                            className="query-input"
+                            placeholder="Ask a question about sensor data..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                        />
+                        <button 
+                            type="submit" 
+                            className="submit-button"
+                            disabled={loading}
+                        >
+                            {loading ? "Processing..." : "Analyze"}
+                        </button>
+                    </form>
+                    
+                    <div className="sample-queries">
+                        <h3>Sample Queries:</h3>
+                        {sampleQueries.map((q, i) => (
+                            <div 
+                                key={i} 
+                                className="sample-query"
+                                onClick={() => handleSampleQuery(q)}
+                            >
+                                {q}
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {loading && <div className="loading">Analyzing data, please wait...</div>}
+                    
+                    {error && <div className="error">{error}</div>}
+                    
+                    {result && (
+                        <div className="result-container">
+                            <div className="summary">{result.summary}</div>
+                            
+                            {result.table_html && (
+                                <div className="table-container">
+                                    <div dangerouslySetInnerHTML={createMarkup(result.table_html)} />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        const root = ReactDOM.createRoot(document.getElementById('app'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
