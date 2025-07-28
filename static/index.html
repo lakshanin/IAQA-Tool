@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IAQ Analysis Tool</title>
-    
-    <!-- React and React DOM from CDN -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>IAQ Analysis Tool</title>
+
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <!-- Babel (for in-browser JSX) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+
+  <!-- Your CSS -->
+<style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
             line-height: 1.6;
@@ -99,6 +101,20 @@
             white-space: pre-line;
         }
         
+        .plot-container {
+            margin: 20px 0;
+            text-align: center;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        
         .table-container {
             overflow-x: auto;
             margin-top: 20px;
@@ -175,122 +191,105 @@
         }
     </style>
 </head>
+
 <body>
-    <div id="app"></div>
-    
-    <script type="text/babel">
-        const App = () => {
-            const [query, setQuery] = React.useState('');
-            const [loading, setLoading] = React.useState(false);
-            const [result, setResult] = React.useState(null);
-            const [error, setError] = React.useState(null);
-            
-            const sampleQueries = [
-                "How does CO2 vary by day of week?",
-                "Which room had highest temperature last week?",
-                "List rooms by average humidity",
-                "Show temperature changes hourly in Room 1"
-            ];
-            
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                
-                if (!query.trim()) {
-                    setError("Please enter a query");
-                    return;
-                }
-                
-                setLoading(true);
-                setError(null);
-                setResult(null);
-                
-                try {
-                    const response = await fetch('/query', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ query })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (!data.success) {
-                        setError(data.summary || "An error occurred while processing your query");
-                    } else {
-                        setResult(data);
-                    }
-                } catch (err) {
-                    setError("Failed to connect to the server. Please try again later.");
-                    console.error("API Error:", err);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            
-            const handleSampleQuery = (sampleQuery) => {
-                setQuery(sampleQuery);
-            };
-            
-            // Function to create HTML markup safely
-            const createMarkup = (html) => {
-                return {__html: html};
-            };
-            
-            return (
-                <div className="container">
-                    <h1>IAQ Analysis Tool</h1>
-                    <form className="query-form" onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            className="query-input"
-                            placeholder="Ask a question about sensor data..."
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        />
-                        <button 
-                            type="submit" 
-                            className="submit-button"
-                            disabled={loading}
-                        >
-                            {loading ? "Processing..." : "Analyze"}
-                        </button>
-                    </form>
-                    
-                    <div className="sample-queries">
-                        <h3>Sample Queries:</h3>
-                        {sampleQueries.map((q, i) => (
-                            <div 
-                                key={i} 
-                                className="sample-query"
-                                onClick={() => handleSampleQuery(q)}
-                            >
-                                {q}
-                            </div>
-                        ))}
-                    </div>
-                    
-                    {loading && <div className="loading">Analyzing data, please wait...</div>}
-                    
-                    {error && <div className="error">{error}</div>}
-                    
-                    {result && (
-                        <div className="result-container">
-                            <div className="summary">{result.summary}</div>
-                            
-                            {result.table_html && (
-                                <div className="table-container">
-                                    <div dangerouslySetInnerHTML={createMarkup(result.table_html)} />
-                                </div>
-                            )}
-                        </div>
-                    )}
+  <div id="app"></div>
+
+  <script type="text/babel">
+    const App = () => {
+      const [query, setQuery] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+      const [result, setResult] = React.useState(null);
+      const [error, setError] = React.useState(null);
+
+      const sampleQueries = [
+        "How does CO2 vary by day of week?",
+        "Which room had highest temperature last week?",
+        "List rooms by average humidity",
+        "Show temperature changes hourly in Room 1"
+      ];
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setResult(null);
+
+        if (!query.trim()) {
+          setError("Please enter a query");
+          return;
+        }
+
+        setLoading(true);
+        try {
+          const resp = await fetch('/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+          });
+
+          const data = await resp.json();
+          if (!data.success) {
+            setError(data.summary || "An error occurred");
+          } else {
+            setResult(data);
+          }
+        } catch (err) {
+          console.error(err);
+          setError("Server error. Please try again later.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const createMarkup = (html) => ({ __html: html });
+
+      return (
+        <div className="container">
+          <h1>IAQ Analysis Tool</h1>
+          <form className="query-form" onSubmit={handleSubmit}>
+            <input
+              className="query-input"
+              placeholder="Ask a question about sensor data..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+            <button className="submit-button" type="submit" disabled={loading}>
+              {loading ? "Processing..." : "Analyze"}
+            </button>
+          </form>
+
+          <div className="sample-queries">
+            <h3>Sample Queries:</h3>
+            {sampleQueries.map((q,i) => (
+              <span key={i} className="sample-query" onClick={() => setQuery(q)}>
+                {q}
+              </span>
+            ))}
+          </div>
+
+          {loading && <div className="loading">Analyzing data, please wait...</div>}
+          {error && <div className="error">{error}</div>}
+
+          {result && (
+            <div className="result-container">
+              <div className="summary">{result.summary}</div>
+              {result.plot_html && (
+                <div className="plot-container">
+                  <div dangerouslySetInnerHTML={createMarkup(result.plot_html)} />
                 </div>
-            );
-        };
-        
-        const root = ReactDOM.createRoot(document.getElementById('app'));
-        root.render(<App />);
-    </script>
+              )}
+              {result.table_html && (
+                <div className="table-container">
+                  <div dangerouslySetInnerHTML={createMarkup(result.table_html)} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+  </script>
 </body>
 </html>

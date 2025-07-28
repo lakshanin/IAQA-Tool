@@ -1,5 +1,7 @@
-flask==2.3.3
-pandas==2.0.3
-numpy==1.24.4
-python-dotenv==1.0.0
-requests==2.31.0
+# python -m pip install --upgrade pip setuptools wheel
+flask
+pandas
+numpy
+python-dotenv
+requests
+matplotlib
