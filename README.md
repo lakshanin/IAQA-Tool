@@ -25,17 +25,8 @@ python app.py
 
 Then open your browser to http://localhost:5000
 
-## Features
-
-- Natural language queries to analyze sensor data
-- Automatic handling of inconsistent field names across files
-- Intelligent code generation for data analysis
-- Results displayed as both text summaries and tables
-- Simple and responsive UI
-
-## Sample Queries
+## Sample Query and Output
 
 - How does CO2 vary by day of week?
-- Which room had highest temperature last week?
-- List rooms by average humidity
-- Show temperature changes hourly in Room 1
+
+![alt text](image.png)
