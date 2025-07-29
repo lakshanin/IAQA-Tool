@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import os
-from agent import load_sensor_data, get_code_from_llm, execute_code
+from backend.ai_agent.execute import execute_code
+from backend.ai_agent.load_data import load_sensor_data
+from backend.ai_agent.llm import get_code_from_llm
 
 # load HF_TOKEN from .env
 load_dotenv()
